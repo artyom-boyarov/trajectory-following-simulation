@@ -1,25 +1,35 @@
-from tkinter import *
-from tkinter import ttk
-
+import argparse
 from simulation import Simulation
-from multiprocessing import *
+from lateral_controllers import *
 
+if __name__ == "__main__":
 
-def main(algorithms):
-    root = Tk()
-    root.title("Choose algorithm to simulate")
-    frame = ttk.Frame(root, padding=10)
-    frame.grid()
-    ttk.Label(frame, text="Welcome to the local path planning simulation.\nClick on an algorithm to start its simulation").grid(column=0, row=0)
+    controllers = ["Pure Pursuit", "Stanley", "Stanley with lookahead", "Hybrid Stanley and Pure Pursuit", "lookbehind_stanley"]
+    argparser = argparse.ArgumentParser(description="Lateral control simulation")
+    argparser.add_argument(
+        '-l', '--lateral-controller',
+        metavar='LATERAL_CONTROLLER',
+        dest='lateral_controller',
+        choices=controllers,
+        required=True,
+        help=f'Lateral controller to choose: {controllers}',
+        default=controllers[0]
+    )
+    argparser.add_argument(
+        '-w', '--waypoint-file',
+        metavar='WAYPOINT_FILE',
+        dest='waypoint_file',
+        required=True,
+        help=f'Waypoint file to choose',
+        default='waypoints.txt'
+    )
+    args = argparser.parse_args()
+    print(args.lateral_controller)
+    controller = args.lateral_controller
+    print(controller)
 
-    counter = 2
-    for algo in algorithms:
-        ttk.Button(frame, text=algo.name, command=Process(target=algo.start).start).grid(column=0, row=counter)
-        counter += 1
-    ttk.Label(frame, text="Created by Artyom Boyarov").grid(column=0, row=counter)
-    root.mainloop()
-
-if __name__ == '__main__':
-    main([Simulation("Frenet frame"),
-          Simulation("Dynamic window"),
-          Simulation("Potential field")])
+    sim = Simulation("Lateral control",controller,  args.waypoint_file)
+    try:
+        sim.run()
+    except KeyboardInterrupt:
+        print("Cancelled by user")
