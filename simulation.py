@@ -63,7 +63,7 @@ class Simulation:
         self.interp_range = 0.1
         self.waypoints = []
         for line in waypoint_file:
-            if line.startswith("#"): continue
+            if line.startswith("#"): continue 
             line = line.replace('\n', '')
 
             parts = line.split("=")
@@ -81,7 +81,7 @@ class Simulation:
                     y.append(p1[1])
                 x.append(p2[0])
                 y.append(p2[1])
-
+            print(line, x, y)
             n_interps = int(dist / self.interp_range)
             new_x = np.linspace(x[0], x[-1], n_interps)
             new_y = []
@@ -357,6 +357,7 @@ class Simulation:
         yc_hist.set_ylabel("Rear error, $m$")
         yc_hist.set_title("Rear crosstrack error")
         yc_hist.plot(self.time_hist, self.rear_error_hist)
+        total_rear_ce = np.sum(self.rear_error_hist)
         print("Total crosstrack error:", total_ce)
         print("Rear crosstrack error:", total_rear_ce)
         plt.show()

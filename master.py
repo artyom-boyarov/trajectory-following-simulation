@@ -1,8 +1,9 @@
 from simulation import Simulation
 import matplotlib.pyplot as plt
+import argparse
 
-waypoint_file = "test_track_waypoints.txt"
-def main():
+waypoint_file = "tracks/test_track_waypoints.txt"
+def main(waypoint_file: str = waypoint_file):
     controllers = ["Pure Pursuit", "Stanley", "Stanley with lookahead", "Hybrid Stanley and Pure Pursuit"]
     ce_err = []
     rce_err = []
@@ -88,4 +89,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Master script for lateral control")
+    parser.add_argument('-w', '--waypoint-file',metavar='WAYPOINT_FILE',dest='waypoint_file',required=False,default=waypoint_file)
+    args = parser.parse_args()
+    main(args.waypoint_file)
