@@ -123,10 +123,10 @@ class Simulation:
         self.axis.set_aspect('equal')
         self.theta = -np.pi / 2
 
+        self.xc = self.waypoints[0][0]
+        self.yc = self.waypoints[0][1]
         self.fx = self.xc
         self.fy = self.yc + self.L
-        self.rx = self.xc
-        self.ry = self.yc - self.L2
         #        cx = np.arange(0, 50, 0.1)
         #        cy = [np.sin(x/5.0) * x/2.0 for x in cx]
         #        self.waypoints = [[cx[i], cy[i]] for i in range(len(cx))]
