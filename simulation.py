@@ -10,7 +10,7 @@ from scipy.spatial import geometric_slerp
 class Simulation:
     WAYPOINT_ACCEPT_DIST = 8.0
 
-    def __init__(self, name, control_opt: str, waypoint_file_name, show_results = True):
+    def __init__(self, name, control_opt: str, speed: int, waypoint_file_name, max_time: int, show_results = True):
         self.name = name
 
         self.xc = 0
@@ -22,7 +22,7 @@ class Simulation:
         self.theta = np.pi
         self.delta = 0
         self.beta = 0
-        self.v = 50 / 3.6  # 13.3 m/s, 30 mph
+        self.v = speed / 3.6  # 13.3 m/s, 30 mph
         self.show_results = show_results
 
         self.L = 10
@@ -30,7 +30,7 @@ class Simulation:
         self.L2 = 10
         self.w_max = np.deg2rad(45.0)
 
-        self.k_dd = 0.7
+        self.k_dd = 0.9
         self.min_ld = 4.0
         self.MIN_DIST_TO_END = 5.0
         self.stanley_k = 2.0
@@ -55,12 +55,15 @@ class Simulation:
         self.yaw_change_hist = []
         self.rear_error_hist = []
         self.prev_w = 0
+        self.timestep_factor = 5
+        self.times = np.arange(0, max_time, 1/self.timestep_factor)
+        self.timestep = 0
         self.timestamp = time.time()
 
         self.prev_ind = 0
 
         waypoint_file = open(waypoint_file_name)
-        self.interp_range = 0.1
+        self.interp_range = 0.05
         self.waypoints = []
         for line in waypoint_file:
             if line.startswith("#"): continue 
@@ -134,7 +137,8 @@ class Simulation:
 
     def run(self):
         start = time.time()
-        while True:
+        for t in self.times:
+            print("Current timestamp:", t)
             self.axis.clear()
             w = self.controller()
             if w > self.w_max:
@@ -143,7 +147,8 @@ class Simulation:
                 w = -self.w_max
             end = time.time()
             delta_time = end - start
-            self.update_position(delta_time, w)
+            self.update_position(1 / self.timestep_factor, w)
+            print(delta_time)
             if np.hypot(self.end_position[0] - self.xc,
                         self.end_position[1] - self.yc) < self.MIN_DIST_TO_END and self.prev_ind > len(
                     self.waypoints) - 10:
@@ -153,7 +158,13 @@ class Simulation:
                 if self.show_results:
                     self.finish_up()
                 plt.close(self.fig)
-                return [self.crosstrack_error_history, self.rear_error_hist, self.yaw_history, np.sum(self.rear_error_hist), np.sum(self.crosstrack_error_history), self.time_hist, self.yaw_change_hist]
+                if self.timestep < len(self.times):
+                    for i in range(len(self.times) - self.timestep):
+                        self.crosstrack_error_history.append(self.crosstrack_error_history[-1])
+                        self.rear_error_hist.append(self.rear_error_hist[-1])
+                        self.yaw_history.append(self.yaw_history[-1])
+                        self.yaw_change_hist.append(self.yaw_change_hist[-1])
+                return [self.crosstrack_error_history, self.rear_error_hist, self.yaw_history, np.sum(self.rear_error_hist), np.sum(self.crosstrack_error_history), self.times, self.yaw_change_hist]
             start = time.time()
             self.update_stats(w)
 
@@ -163,6 +174,7 @@ class Simulation:
             self.axis.set_xlim(self.xc - 100, self.xc + 100)
             self.axis.set_ylim(self.yc - 100, self.yc + 100)
             self.fig.canvas.draw()
+            self.timestep += 1
 
     def update_stats(self, w):
         wp = self.waypoints[self.get_closest_waypoint_by_front()]
@@ -172,7 +184,6 @@ class Simulation:
         self.yaw_history.append(w)
         self.yaw_change_hist.append(w - self.prev_w)
         self.prev_w = w
-        self.time_hist.append(time.time() - self.timestamp)
         rear_wp = self.waypoints[self.get_closest_waypoint_to_car_by_rear()]
         self.rear_error_hist.append(np.hypot(rear_wp[0] - self.xc, rear_wp[1] - self.yc))
         self.prev_ind = self.get_closest_waypoint_by_front()
@@ -331,7 +342,7 @@ class Simulation:
 
     def finish_up(self):
         fig, ax = plt.subplots(2, 2, constrained_layout=True)
-
+        self.time_hist = self.times
         yaw_hist = ax[0, 0]
         ce_hist = ax[0, 1]
         path_hist = ax[1, 0]
