@@ -55,7 +55,7 @@ class Simulation:
         self.yaw_change_hist = []
         self.rear_error_hist = []
         self.prev_w = 0
-        self.timestep_factor = 5
+        self.timestep_factor = 10
         self.times = np.arange(0, max_time, 1/self.timestep_factor)
         self.timestep = 0
         self.timestamp = time.time()
