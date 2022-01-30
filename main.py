@@ -28,7 +28,7 @@ if __name__ == "__main__":
     controller = args.lateral_controller
     print(controller)
 
-    sim = Simulation("Lateral control",controller,50, 25,  args.waypoint_file)
+    sim = Simulation("Lateral control",controller,50,  args.waypoint_file, 25)
     try:
         sim.run()
     except KeyboardInterrupt:

@@ -55,7 +55,8 @@ class Simulation:
         self.yaw_change_hist = []
         self.rear_error_hist = []
         self.prev_w = 0
-        self.timestep_factor = 10
+        self.timestep_factor: int = 10
+        print(type(max_time), type(self.timestep_factor))
         self.times = np.arange(0, max_time, 1/self.timestep_factor)
         self.timestep = 0
         self.timestamp = time.time()
@@ -133,6 +134,8 @@ class Simulation:
         #        cx = np.arange(0, 50, 0.1)
         #        cy = [np.sin(x/5.0) * x/2.0 for x in cx]
         #        self.waypoints = [[cx[i], cy[i]] for i in range(len(cx))]
+        #plt.plot([wp[0] for wp in self.waypoints], [wp[1] for wp in self.waypoints])
+        #plt.show()
         self.end_position = self.waypoints[-1]
 
     def run(self):
