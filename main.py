@@ -27,7 +27,7 @@ if __name__ == "__main__":
     waypoint_file: str
     if len(sys.argv) < 2:
         print("Please choose control algorithm")
-        print("Options:", *[f"{i:} {controllers[i]}" for i in range(len(controllers))])
+        print("Options:", *[f"{i:}: {controllers[i]}" for i in range(len(controllers))])
         controller = controllers[int(input())]
         print("Enter waypoint file name:")
         print(f"Suggested waypoint files:", *['tracks/' + x for x in os.listdir('./tracks/')])
