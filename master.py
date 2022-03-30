@@ -1,12 +1,11 @@
-from sys import stdout
 from simulation import Simulation
 import matplotlib.pyplot as plt
 import argparse
-import numpy as np
+import sys
 
 def write_data(array, times, filename, controllers):
 
-    file = open(filename, "wt")
+    file = open(filename, "wt+")
     print(*times)
     print(*(["Time"]+controllers), sep=',', file=file)
     for i in range(len(times[0])-1):
@@ -107,12 +106,6 @@ def main(waypoint_file: str = waypoint_file, speed: int = 50, time: int=20, show
     write_data(yaw_change, times, f"{prefix}yaw_change.csv", controllers)
     write_data(ce_err, times, f"{prefix}ce_err.csv", controllers)
     write_data(yaw, times, f"{prefix}yaw.csv", controllers)
-    
-    
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -121,6 +114,21 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--speed', metavar='SPEED', dest='speed', required=True)
     parser.add_argument('-t', '--time', metavar='TIME', dest='time', required=True)
     parser.add_argument('-o', '--show',  dest='show', default=False, action='store_true')
-    args = parser.parse_args()
     
-    main(args.waypoint_file, int(args.speed), int(args.time), args.show)
+    waypoint_file: str
+    speed: str
+    time: str
+    show = False
+    if len(sys.argv) < 2:
+        
+        print("Enter waypoint file name:")
+        waypoint_file = input()
+        time = input("Enter time: ")
+        speed = input("Enter speed: ")
+    else:
+        args = parser.parse_args()
+        waypoint_file = args.waypoint_file
+        speed = args.speed
+        time = args.time
+        show = args.show
+    main(waypoint_file, int(speed), int(time), show)

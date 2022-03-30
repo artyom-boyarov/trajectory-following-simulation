@@ -10,7 +10,7 @@ from scipy.spatial import geometric_slerp
 class Simulation:
     WAYPOINT_ACCEPT_DIST = 8.0
 
-    def __init__(self, name, control_opt: str, speed: int, waypoint_file_name, max_time: int, show_results = True):
+    def __init__(self, name, control_opt: str, speed: int, waypoint_file_name: str, max_time: int, show_results = True):
         self.name = name
 
         self.xc = 0
@@ -55,19 +55,39 @@ class Simulation:
         self.yaw_change_hist = []
         self.rear_error_hist = []
         self.prev_w = 0
-        self.timestep_factor: int = 10
-        print(type(max_time), type(self.timestep_factor))
+        self.timestep_factor: int = 5
         self.times = np.arange(0, max_time, 1/self.timestep_factor)
         self.timestep = 0
         self.timestamp = time.time()
-
         self.prev_ind = 0
 
-        waypoint_file = open(waypoint_file_name)
-        self.interp_range = 0.05
+
         self.waypoints = []
+        self.load_waypoints(waypoint_file_name)
+
+        plt.ion()
+        self.fig = plt.figure(figsize=(8, 6))
+        self.fig.suptitle(f"Simulation for {control_opt}")
+        self.axis = self.fig.add_subplot(221)
+        self.axis.set_title(f"Simulation: {control_opt}")
+        self.axis.set_aspect('equal')
+        self.yaw_axis = self.fig.add_subplot(222)
+        self.yaw_axis.set_title("Yaw against time")
+
+        self.ce_axis = self.fig.add_subplot(223)
+        self.theta = -np.pi / 2
+
+        self.xc = self.waypoints[0][0]
+        self.yc = self.waypoints[0][1]
+        self.fx = self.xc
+        self.fy = self.yc + self.L
+        self.end_position = self.waypoints[-1]
+
+    def load_waypoints(self, waypoint_file_name):
+        waypoint_file = open(waypoint_file_name)
+        interp_range = 0.05
         for line in waypoint_file:
-            if line.startswith("#"): continue 
+            if line.startswith("#"): continue
             line = line.replace('\n', '')
 
             parts = line.split("=")
@@ -86,7 +106,7 @@ class Simulation:
                 x.append(p2[0])
                 y.append(p2[1])
             print(line, x, y)
-            n_interps = int(dist / self.interp_range)
+            n_interps = int(dist / interp_range)
             new_x = np.linspace(x[0], x[-1], n_interps)
             new_y = []
 
@@ -94,7 +114,7 @@ class Simulation:
                 cnt = 0
                 for i in range(n_interps):
                     new_y.append(y[0] + (i * ((y[-1] - y[0]) / n_interps)))
-                    cnt += self.interp_range / n_interps
+                    cnt += interp_range / n_interps
             else:
                 if parts[0] == "l":
                     f = interp.interp1d(x, y)
@@ -120,23 +140,6 @@ class Simulation:
                         raise
             for i in range(len(new_x)):
                 self.waypoints.append([new_x[i], new_y[i]])
-        plt.ion()
-        self.fig = plt.figure(figsize=(8, 6))
-        self.axis = self.fig.add_subplot(111)
-        self.axis.set_title(f"Simulation: {control_opt}")
-        self.axis.set_aspect('equal')
-        self.theta = -np.pi / 2
-
-        self.xc = self.waypoints[0][0]
-        self.yc = self.waypoints[0][1]
-        self.fx = self.xc
-        self.fy = self.yc + self.L
-        #        cx = np.arange(0, 50, 0.1)
-        #        cy = [np.sin(x/5.0) * x/2.0 for x in cx]
-        #        self.waypoints = [[cx[i], cy[i]] for i in range(len(cx))]
-        #plt.plot([wp[0] for wp in self.waypoints], [wp[1] for wp in self.waypoints])
-        #plt.show()
-        self.end_position = self.waypoints[-1]
 
     def run(self):
         start = time.time()
@@ -176,6 +179,9 @@ class Simulation:
             #self.axis.arrow(self.rx, self.ry, self.xc - self.rx, self.yc - self.ry, width=2, shape='full', head_width=0)
             self.axis.set_xlim(self.xc - 100, self.xc + 100)
             self.axis.set_ylim(self.yc - 100, self.yc + 100)
+
+
+
             self.fig.canvas.draw()
             self.timestep += 1
 
@@ -191,20 +197,16 @@ class Simulation:
         self.rear_error_hist.append(np.hypot(rear_wp[0] - self.xc, rear_wp[1] - self.yc))
         self.prev_ind = self.get_closest_waypoint_by_front()
 
+        self.yaw_axis.cla()
+        self.yaw_axis.plot(self.times[0:len(self.yaw_history)], self.yaw_history)
+        self.ce_axis.plot(self.times[0:len(self.crosstrack_error_history)], self.crosstrack_error_history)
 
+        self.yaw_axis.set_title(f"Steering angle")
+        self.ce_axis.set_title(f"Crosstrack error")
 
-    #            print("delta:", self.delta, "x", self.xc, "y", self.yc)
-    # exit(0)
 
     def update_position(self, delta_time, delta):
-
-
         length = np.hypot(self.fx - self.rx, self.fy - self.ry)
-        #print("((length**2) - (self.L2**2 + self.L**2))/(-2*self.L2*self.L)", ((length**2) - (self.L2**2 + self.L**2))/(-2*self.L2*self.L))
-        #rear_theta = np.arccos(((length**2) - (self.L2**2 + self.L**2))/(-2*self.L2*self.L))
-
-        #print("Rear wheel angle:", np.rad2deg(rear_theta))
-        #print("Rear wheel:", self.rx, self.ry)
         print("Middle wheel:", self.xc, self.yc)
         print("Front wheel:", self.fx, self.fy)
 
@@ -215,14 +217,6 @@ class Simulation:
         self.yc += (self.v * np.sin(self.theta)) * delta_time
         self.fx = self.xc + ((self.L) * np.cos(self.theta))
         self.fy = self.yc + ((self.L) * np.sin(self.theta))
-        #rear_theta = np.arctan2(self.rx - self.xc, self.ry - self.yc)
-
-
-
-        #rxv = self.v * np.sin(rear_theta)
-        #ryv = self.v * np.cos(rear_theta)
-        #self.rx  += rxv * delta_time
-        #self.ry += ryv * delta_time
 
     def normalise_angle(self, angle):
         while angle > np.pi:
@@ -345,7 +339,9 @@ class Simulation:
 
     def finish_up(self):
         fig, ax = plt.subplots(2, 2, constrained_layout=True)
-        self.time_hist = self.times
+
+        finished_idx = len(self.yaw_history)
+        self.time_hist = self.times[:finished_idx]
         yaw_hist = ax[0, 0]
         ce_hist = ax[0, 1]
         path_hist = ax[1, 0]
@@ -364,8 +360,9 @@ class Simulation:
         ce_hist.set_ylabel("Crosstrack error, $m$")
 
         path_hist.set_title("Path")
-        path_hist.plot(self.x_history, self.y_history)
-        path_hist.plot([w[0] for w in self.waypoints], [w[1] for w in self.waypoints])
+        path_hist.plot(self.x_history, self.y_history, label='Path taken')
+        path_hist.plot([w[0] for w in self.waypoints], [w[1] for w in self.waypoints], label='Set trajectory')
+        path_hist.set_aspect('equal')
 
         yc_hist.set_xlabel("Time, $s$")
         yc_hist.set_ylabel("Rear error, $m$")
@@ -374,6 +371,7 @@ class Simulation:
         total_rear_ce = np.sum(self.rear_error_hist)
         print("Total crosstrack error:", total_ce)
         print("Rear crosstrack error:", total_rear_ce)
+        plt.legend()
         plt.show()
 
 
