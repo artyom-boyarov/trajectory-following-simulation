@@ -1,4 +1,4 @@
 matplotlib
 numpy
 scipy
-pyparsing=3.0.0
+pyparsing==3.0.0

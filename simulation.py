@@ -3,6 +3,7 @@ from lateral_controllers import LateralController, waypoint_is_in_front_of_car
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import scipy.interpolate as interp
 from scipy.spatial import geometric_slerp
 
@@ -11,6 +12,12 @@ class Simulation:
     WAYPOINT_ACCEPT_DIST = 8.0
 
     def __init__(self, name, control_opt: str, speed: int, waypoint_file_name: str, max_time: int, show_results = True):
+
+        #print(matplotlib.rcsetup.interactive_bk)
+        #print(matplotlib.get_backend())
+        #matplotlib.use('WXAgg', force=True)
+        #print(matplotlib.get_backend())
+
         self.name = name
 
         self.xc = 0
@@ -70,11 +77,13 @@ class Simulation:
         self.fig.suptitle(f"Simulation for {control_opt}")
         self.axis = self.fig.add_subplot(221)
         self.axis.set_title(f"Simulation: {control_opt}")
-        self.axis.set_aspect('equal')
+        #self.axis.set_aspect('equal')
         self.yaw_axis = self.fig.add_subplot(222)
         self.yaw_axis.set_title("Yaw against time")
+        #self.yaw_axis.set_aspect('equal')
 
         self.ce_axis = self.fig.add_subplot(223)
+        #self.ce_axis.set_aspect('equal')
         self.theta = -np.pi / 2
 
         self.xc = self.waypoints[0][0]
@@ -203,6 +212,7 @@ class Simulation:
 
         self.yaw_axis.set_title(f"Steering angle")
         self.ce_axis.set_title(f"Crosstrack error")
+
 
 
     def update_position(self, delta_time, delta):
