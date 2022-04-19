@@ -1,7 +1,7 @@
 from simulation import Simulation
 import matplotlib.pyplot as plt
 import argparse
-import sys
+import sys, os
 
 def write_data(array, times, filename, controllers):
 
@@ -122,6 +122,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         
         print("Enter waypoint file name:")
+        print(f"Suggested waypoint files:", *['tracks/' + x for x in os.listdir('./tracks/')])
         waypoint_file = input()
         time = input("Enter time: ")
         speed = input("Enter speed: ")
