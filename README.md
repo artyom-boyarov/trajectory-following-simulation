@@ -16,9 +16,15 @@ Feel free to use this code for your own research or experimenting, or to see imp
 
 ## Running
 Create virtual environment: <br>
-```python -m venv .venv```<br>
-```source .venv/bin/activate```<br>
-To run install requirements first:<br>
-```pip install -r requirements.txt```<br>
-Then run each file, e.g.<br>
-```python main.py```
+```
+python -m venv .venv
+source .venv/bin/activate
+```
+To run install requirements first:
+```
+pip install -r requirements.txt
+```
+Then run each file, e.g.
+```
+python main.py
+```
