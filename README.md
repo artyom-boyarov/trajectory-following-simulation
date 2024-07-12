@@ -28,3 +28,5 @@ Then run each file, e.g.
 ```
 python main.py
 ```
+### Sample Output
+<img src="results/sample_graphs.png"/>
