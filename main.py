@@ -18,7 +18,6 @@ def write_data(array, times, filename, controllers):
 
 waypoint_file = "tracks/test_track_waypoints.txt"
 def main(waypoint_file: str = waypoint_file, speed: int = 50, time: int=20, show: bool=False, controller: str=None):
-    assert show == False
 
     if controller is not None:
         test_controllers = [controller]
@@ -120,8 +119,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--speed', metavar='SPEED', dest='speed', required=True)
     parser.add_argument('-t', '--time', metavar='TIME', dest='time', required=True)
     parser.add_argument('-o', '--show',  dest='show', default=False, action='store_true')
-    argparser = argparse.ArgumentParser(description="Lateral control simulation")
-    argparser.add_argument(
+    parser.add_argument(
         '-l', '--lateral-controller',
         metavar='LATERAL_CONTROLLER',
         dest='lateral_controller',
@@ -133,18 +131,6 @@ if __name__ == "__main__":
     waypoint_file: str
     speed: str
     time: str
-    show = False
-    if len(sys.argv) < 2:
-        
-        print("Enter waypoint file name:")
-        print(f"Suggested waypoint files:", *['tracks/' + x for x in os.listdir('./tracks/')])
-        waypoint_file = input()
-        time = input("Enter time: ")
-        speed = input("Enter speed: ")
-    else:
-        args = parser.parse_args()
-        waypoint_file = args.waypoint_file
-        speed = args.speed
-        time = args.time
-        show = args.show
-    main(waypoint_file, int(speed), int(time), show, )
+    show: bool
+    args = parser.parse_args()
+    main(args.waypoint_file, int(args.speed), int(args.time), args.show, args.lateral_controller)

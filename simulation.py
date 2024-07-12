@@ -1,11 +1,10 @@
-import sys
 from lateral_controllers import LateralController, waypoint_is_in_front_of_car
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
 import scipy.interpolate as interp
 from scipy.spatial import geometric_slerp
+import os
 
 
 class Simulation:
@@ -80,6 +79,7 @@ class Simulation:
         #self.axis.set_aspect('equal')
         self.yaw_axis = self.fig.add_subplot(222)
         self.yaw_axis.set_title("Yaw against time")
+        plt.show()
         #self.yaw_axis.set_aspect('equal')
 
         self.ce_axis = self.fig.add_subplot(223)
@@ -167,19 +167,7 @@ class Simulation:
             if np.hypot(self.end_position[0] - self.xc,
                         self.end_position[1] - self.yc) < self.MIN_DIST_TO_END and self.prev_ind > len(
                     self.waypoints) - 10:
-
-                plt.close(self.fig)
-                plt.ioff()
-                if self.show_results:
-                    self.finish_up()
-                plt.close(self.fig)
-                if self.timestep < len(self.times):
-                    for i in range(len(self.times) - self.timestep):
-                        self.crosstrack_error_history.append(self.crosstrack_error_history[-1])
-                        self.rear_error_hist.append(self.rear_error_hist[-1])
-                        self.yaw_history.append(self.yaw_history[-1])
-                        self.yaw_change_hist.append(self.yaw_change_hist[-1])
-                return [self.crosstrack_error_history, self.rear_error_hist, self.yaw_history, np.sum(self.rear_error_hist), np.sum(self.crosstrack_error_history), self.times, self.yaw_change_hist]
+                break
             start = time.time()
             self.update_stats(w)
 
@@ -189,10 +177,21 @@ class Simulation:
             self.axis.set_xlim(self.xc - 100, self.xc + 100)
             self.axis.set_ylim(self.yc - 100, self.yc + 100)
 
-
-
             self.fig.canvas.draw()
             self.timestep += 1
+
+        plt.close(self.fig)
+        plt.ioff()
+        if self.show_results:
+            self.finish_up()
+        plt.close(self.fig)
+        if self.timestep < len(self.times):
+            for i in range(len(self.times) - self.timestep):
+                self.crosstrack_error_history.append(self.crosstrack_error_history[-1])
+                self.rear_error_hist.append(self.rear_error_hist[-1])
+                self.yaw_history.append(self.yaw_history[-1])
+                self.yaw_change_hist.append(self.yaw_change_hist[-1])
+        return [self.crosstrack_error_history, self.rear_error_hist, self.yaw_history, np.sum(self.rear_error_hist), np.sum(self.crosstrack_error_history), self.times, self.yaw_change_hist]
 
     def update_stats(self, w):
         wp = self.waypoints[self.get_closest_waypoint_by_front()]
@@ -356,10 +355,10 @@ class Simulation:
         ce_hist = ax[0, 1]
         path_hist = ax[1, 0]
         yc_hist = ax[1, 1]
-        yaw_hist.set_title("Delta history")
+        yaw_hist.set_title("Steering angle")
         yaw_hist.plot(self.time_hist, self.yaw_history)
         yaw_hist.set_xlabel("Time, $s$")
-        yaw_hist.set_ylabel("Yaw angle, $rad$")
+        yaw_hist.set_ylabel("Steering angle, $rad$")
         yaw_hist.set_ylim(-self.w_max -0.1, self.w_max + 0.1)
 
         total_ce = np.sum(self.crosstrack_error_history)
@@ -386,5 +385,5 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    sim = Simulation("Lateral control", "stanley", "waypoints.txt")
-    sim.start()
+    sim = Simulation("Lateral control", "Stanley", 50, os.path.join("tracks", "s_course.txt"), 20)
+    sim.run()
