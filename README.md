@@ -14,19 +14,19 @@ Feel free to use this code for your own research or experimenting, or to see imp
 ```lateral_controllers.py```: Contains implementations of the control algorithms used.<br>
 ```all.sh```: A script to run the simulation across all courses and all algorithms and all speeds.<br>
 
-## Running
+## Running (Use Ubuntu 22.04)
 Create virtual environment: <br>
 ```
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 To run install requirements first:
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
-Then run each file, e.g.
+Then run the simulation:
 ```
-python main.py
+python3 main.py
 ```
 ### Sample Output
 <img src="results/sample_graphs.png"/>
